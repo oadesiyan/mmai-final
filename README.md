@@ -7,21 +7,21 @@ This projetc was made for Music, the Mind, and Artificial Intelligence at New Yo
 ## Set Up 
 
 ### 1. Clone the repository
-`git clone https://github.com/oadesiyan/mmai-final.git`
+```git clone https://github.com/oadesiyan/mmai-final.git```
 
 ### 2. cd into the asl-recognition folder 
-`cd asl-recognition`
+```cd asl-recognition```
 
 ### 3. Create and start the virtual environment
 Create the virtual environment by running: `python -m venv venv` </br>
 Then start the virtual environment by running:
-- **macOS**: `source venv/bin/activate`
-- **Windows**: `venv\Scripts\activate`
+* **macOS**: ```source venv/bin/activate```
+* **Windows**: ```venv\Scripts\activate```
 
 ### 4. Start the Flask environment
-`flask run`
+```flask run```
 
 ### 5. Access the local host server: 
-[http://127.0.0.1:5000/](http://127.0.0.1:5000/)
+http://127.0.0.1:5000/
 
 ### 6. Have fun!
