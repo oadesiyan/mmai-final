@@ -2,7 +2,7 @@
 Author: [Oluwapelumi Adesiyan](https://github.com/oadesiyan)
 
 ## About the Project
-This projetc was made for Music, the Mind, and Artificial Intelligence at New York University (NYU). We were challened to create something that combines music and artificial intelligence for our final project. As a linguistics minor and a student interested in __Human Computer Interaction (HCI)__, I wanted something that would allow users to directly make music in tandem with the machine. I want to expland the project to also have a place to teach users __American Sign Language (ASL)__ as well. 
+This project was made for Music, the Mind, and Artificial Intelligence at New York University (NYU). We were challened to create something that combines music and artificial intelligence for our final project. As a linguistics minor and a student interested in __Human Computer Interaction (HCI)__, I wanted something that would allow users to directly make music in tandem with the machine. I want to expland the project to also have a place to teach users __American Sign Language (ASL)__ as well. 
 
 ## Set Up 
 

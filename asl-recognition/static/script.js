@@ -78,4 +78,4 @@ function captureAndSendFrames(videoElement) {
 //create a new piece of music
 startSongBtn.addEventListener("click", () => {
 
-}
+});
