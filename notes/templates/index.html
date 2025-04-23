@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    </head>
+
+    <body>
+        <div class="home-container">
+            <div class="webcam">
+                <video id="video" autoplay playsinline></video>
+                <div id="stopStart">
+                    <button id="startBtn">Start Webcam</button>
+                    <button id="stopBtn">Stop Webcam</button>
+                </div>
+            </div>
+
+            <div class="result">
+                <span id="result-box"></span>
+            </div>
+        </div>
+        <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+    </body>
+</html>
