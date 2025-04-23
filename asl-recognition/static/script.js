@@ -3,20 +3,20 @@ const startBtn = document.querySelector("#startBtn");
 const stopBtn = document.querySelector("#stopBtn");
 const container = document.querySelector(".home-container");
 
-const resultDisplay = document.querySelector("#result-box");
+const resultDisplay = document.querySelector("#result-box"); //ASL prediction is loaded here
 const box = document.querySelector(".result")
+const frameBuffer = [];
 
 //start webcam
 startBtn.addEventListener("click", () => {
-    const constraints = { video: true };
     navigator.mediaDevices
-    .getUserMedia(constraints)
+    .getUserMedia({ video: true })
     .then(function (stream) {
         console.log("Camera access granted.");
         video.srcObject = stream;
         video.play();
         container.style.display = "flex";
-        captureInterval = setInterval(() => captureAndSendImage(video), 5000);
+        captureInterval = setInterval(() => captureAndSendFrames(video), 1500);
     })
     .catch(function (error) {
         console.error("Error accessing camera:", error);
@@ -38,9 +38,7 @@ stopBtn.addEventListener("click", () => {
 
 });
 
-// 
-
-function captureAndSendImage(videoElement) {
+function captureAndSendFrames(videoElement) {
     if (!videoElement.videoWidth || !videoElement.videoHeight) {
         console.warn("Video not ready yet.");
         return;
@@ -54,7 +52,7 @@ function captureAndSendImage(videoElement) {
 
     const base64Image = canvas.toDataURL('image/jpeg');
 
-    fetch('/submit-video', {
+    fetch('/predict-sign', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -63,37 +61,15 @@ function captureAndSendImage(videoElement) {
     })
     .then(res => res.json())
     .then(data => {
-        if (data.emotion && data.emoji) {
+        if (data.prediction && data.confidence > 0.5) {
             console.log(data)
-            console.log("ResultDisplay exists:", resultDisplay);
-            console.log("Emotion Detected:", data.emotion);
-            resultDisplay.innerHTML = ` <span style="font-size: 8rem;">${data.emoji}</span>`;
+            resultDisplay.innerHTML = `<span style="font-size: 8rem;">${data.prediction}</span>`;
         } else {
-            resultDisplay.innerHTML = `Could not detect emotion 😕`;
+            resultDisplay.innerHTML = '<span>Waiting for stable sign...</span>';
         }
     })
     .catch(err => {
-        console.error('Emotion detection failed', err);
-        resultDisplay.innerHTML = `Error detecting emotion 😕`;
+        console.error("Can't detect sign", err);
+        resultDisplay.innerHTML = "Sign detection failed.";
     });
-}
-
-// send image to deepface server and update our site
-async function sendImageToServer(base64Image) {
-    const response = await fetch("/submit-video", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ image: base64Image })
-    });
-  
-    const data = await response.json();
-    console.log("Detected Emotion:", data.emotion, "Emoji:", data.emoji);
-  
-    // Update the emoji in the DOM
-    const resultDisplay = document.getElementById("result-box");
-    if (resultDisplay) {
-        resultDisplay.textContent = data.emoji;
-    }
 }

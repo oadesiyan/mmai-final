@@ -1,2 +1,0 @@
-from SignLanguageRecognition import signLanguageRecognizer
-
