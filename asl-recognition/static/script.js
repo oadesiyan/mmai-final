@@ -38,6 +38,7 @@ stopBtn.addEventListener("click", () => {
 
 });
 
+// take frames and send a group of frames to detector
 function captureAndSendFrames(videoElement) {
     if (!videoElement.videoWidth || !videoElement.videoHeight) {
         console.warn("Video not ready yet.");
@@ -72,4 +73,9 @@ function captureAndSendFrames(videoElement) {
         console.error("Can't detect sign", err);
         resultDisplay.innerHTML = "Sign detection failed.";
     });
+}
+
+//create a new piece of music
+startSongBtn.addEventListener("click", () => {
+
 }
