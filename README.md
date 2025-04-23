@@ -18,10 +18,13 @@ Then start the virtual environment by running:
 * **macOS**: ```source venv/bin/activate```
 * **Windows**: ```venv\Scripts\activate```
 
-### 4. Start the Flask environment
+### 4. Install the dependencies
+Run ```pip install -r requirements.txt```
+
+### 5. Start the Flask environment
 ```flask run```
 
-### 5. Access the local host server: 
+### 6. Access the local host server: 
 http://127.0.0.1:5000/
 
-### 6. Have fun!
+### 7. Have fun!
