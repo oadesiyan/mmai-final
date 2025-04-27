@@ -7,6 +7,11 @@ const resultDisplay = document.querySelector("#result-box"); //ASL prediction is
 const box = document.querySelector(".result")
 const frameBuffer = [];
 
+let logging = false
+const startGenBtn = document.querySelector("#startGenBtn");
+const endGenBtn = document.querySelector("#endGenBtn");
+let notes = [];
+
 //start webcam
 startBtn.addEventListener("click", () => {
     navigator.mediaDevices
@@ -77,5 +82,98 @@ function captureAndSendFrames(videoElement) {
 
 //create a new piece of music
 startSongBtn.addEventListener("click", () => {
-
+    logging = true;
+    notes = [] //new creation session
+    startGenBtn.disabled = true;
+    stopGenBtn.disabled = false;
+    console.log("Song creation starting...")
 });
+
+// stop note generation
+endGenBtn.addEventListener("click", () => { 
+    logging = false;
+    startGenBtn.disabled = false;
+    topGenBtn.disabled = true;
+    console.log("Song creation done. Generating MIDI file...")
+
+    fetch('/predict-sign', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ prediction: notes.join(' ') })
+    })
+    .then(data => {
+        const container = document.createElement('div');
+        container.id = "sheetMusic";
+        document.body.appendChild(container);
+    
+        const VF = Vex.Flow;
+        const renderer = new VF.Renderer(container, VF.Renderer.Backends.SVG);
+    
+        renderer.resize(500, 200);
+        const context = renderer.getContext();
+        const stave = new VF.Stave(10, 40, 400);
+        stave.addClef("treble").setContext(context).draw();
+    
+        const notes = data.prediction.split(' ').map(letter => {
+            return new VF.StaveNote({ 
+                clef: "treble", 
+                keys: [`${letter.toLowerCase()}/4`],  // example: 'c/4'
+                duration: "q"
+            });
+        });
+    
+        const voice = new VF.Voice({ num_beats: notes.length,  beat_value: 4 });
+        voice.addTickables(notes);
+    
+        const formatter = new VF.Formatter().joinVoices([voice]).format([voice], 400);
+        voice.draw(context, stave);
+    });
+});
+
+// constantly log the newly signed note
+function handlePrediction(prediction) {
+    if (logging) {
+        fetch('/log_sign', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ sign: prediction })
+        });
+
+        currentNotes.push(prediction);
+        renderSheetMusic(currentNotes);
+    }
+}
+
+
+function renderSheetMusic(noteLetters) {
+    document.getElementById('sheetMusicContainer').innerHTML = ""; // Clear previous music
+
+    const VF = Vex.Flow;
+    const div = document.getElementById('sheetMusicContainer');
+    const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
+
+    renderer.resize(500, 200);
+    const context = renderer.getContext();
+    const stave = new VF.Stave(10, 40, 400);
+
+    stave.addClef("treble").setContext(context).draw();
+
+    const notes = noteLetters.map(letter => {
+        const note = letter.toLowerCase();
+        return new VF.StaveNote({ 
+            clef: "treble", 
+            keys: [`${note}/4`], 
+            duration: "q"
+        });
+    });
+
+    const voice = new VF.Voice({ num_beats: notes.length, beat_value: 4 });
+    voice.addTickables(notes);
+
+    new VF.Formatter().joinVoices([voice]).format([voice], 400);
+    voice.draw(context, stave);
+}

@@ -6,3 +6,4 @@ protobuf==4.25.3
 opencv-python==4.9.0.80
 Pillow==10.2.0
 SignLanguageRecognition
+music21==9.5.0
