@@ -4,6 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+        <script type="text/javascript" src="https://npmcdn.com/vexflow@1.2.89/releases/vexflow-debug.js"></script>
         <title>ASL to Music</title>
     </head>
 
@@ -15,10 +16,23 @@
                     <button id="startBtn">Start Webcam</button>
                     <button id="stopBtn">Stop Webcam</button>
                 </div>
+
+                <div id="staffCtrls">
+                    <button id="staffStart">Create Staff</button>
+                    <button id="staffEnd">End Staff</button>
+                </div>
             </div>
 
             <div class="result">
                 <p>Prediction: <span id="result-box"></span></p>
+
+                <div class="staff">
+                    <canvas id="musicStaff" width="500" height="150"></canvas>
+                    <div class="controls">
+                        <button id="logNoteBtn">Log Note</button>
+                        <button id="deleteNoteBtn">Delete Last Note</button>
+                    </div>
+                </div>
             </div>
         </div>
 

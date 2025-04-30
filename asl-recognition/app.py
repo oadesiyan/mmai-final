@@ -31,7 +31,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 weights_path = os.path.join(BASE_DIR, 'action.h5')
 
 actions = np.array(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'w', 'y', 'z'])
-noteLetters = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+noteLetters = np.array(['a', 'b', 'c', 'd', 'e', 'f', 'g'])
 
 model = Sequential([
     Input(shape=(30, 126)),
@@ -48,6 +48,11 @@ sequence = []
 mpHolistic = mp.solutions.holistic
 mpHands = mp.solutions.hands
 
+holistic_model = mpHolistic.Holistic(
+    min_detection_confidence=0.5,
+    min_tracking_confidence=0.5
+)
+
 @app.route('/', methods=["GET", "POST"])
 def home():
     return render_template("index.html")
@@ -61,28 +66,52 @@ def predict_sign():
     image = Image.open(io.BytesIO(image_bytes))
     image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 
-    with mpHolistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
-        image, results = mediapipeDetection(image, holistic)
-        keypoints = extractKeypoints(results)
+    image, results = mediapipeDetection(image, holistic_model)
+    keypoints = extractKeypoints(results)
 
-        global sequence
-        sequence.append(keypoints)
-        sequence = sequence[-30:]
+    global sequence
+    sequence.append(keypoints)
+    sequence = sequence[-30:]
 
-        if len(sequence) == 30:
-            res = model.predict(tf.expand_dims(sequence, axis=0))[0]
-            
-            # Get full prediction
-            full_prediction = actions[np.argmax(res)]
-            confidence = float(np.max(res))
+    if len(sequence) == 30:
+        res = model.predict(tf.expand_dims(sequence, axis=0))[0]
+        
+        # Get full prediction
+        full_prediction = actions[np.argmax(res)]
+        confidence = float(np.max(res))
 
-            # Only allow if it's in allowed_letters
-            if full_prediction in noteLetters:
-                return jsonify({ "prediction": full_prediction, "confidence": confidence })
-            else:
-                return jsonify({ "prediction": "", "confidence": 0.0 })
+        # Only allow if it's a note letter
+        if full_prediction in noteLetters:
+            return jsonify({ "prediction": full_prediction, "confidence": confidence })
+        else:
+            return jsonify({ "prediction": "", "confidence": 0.0 })
 
     return jsonify({ "prediction": "", "confidence": 0.0 })
+
+logged_signs = []
+
+# endpoints for creating music staff
+@app.route('/start_logging', methods=['POST'])
+def start_logging():
+    global logged_signs
+    logged_signs = []  # Reset
+    return jsonify({'message': 'Logging started'})
+
+@app.route('/log_sign', methods=['POST'])
+def log_sign():
+    data = request.get_json()
+    sign = data.get('sign')
+
+    if sign:
+        logged_signs.append(sign)
+        return jsonify({'message': f'Sign {sign} logged successfully'})
+    else:
+        return jsonify({'error': 'No sign provided'}), 400
+
+@app.route('/generate_music', methods=['GET'])
+def generate_music():
+    # We just return the list of signs/letters
+    return jsonify({'notes': logged_signs})
 
 if __name__ == '__main__':
     app.run(debug=True)
