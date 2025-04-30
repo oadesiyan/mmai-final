@@ -183,3 +183,28 @@ deleteNoteBtn.addEventListener('click', () => {
 });
 
 document.getElementById("staffCtrls").style.display = "none";
+
+const exportBtn = document.getElementById("exportBtn");
+const musicPlayer = document.getElementById("musicPlayer");
+
+document.addEventListener("DOMContentLoaded", () => {
+    exportBtn.addEventListener("click", () => {
+        fetch('/generate-music', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ notes: loggedNotes })
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log('WAV URL:', data.wav_url);
+            console.log(musicPlayer);
+            musicPlayer.src = `${data.wav_url}`;
+            musicPlayer.load();
+        })
+        .catch(err => {
+            console.error("Failed to generate music:", err);
+        });
+    });
+});

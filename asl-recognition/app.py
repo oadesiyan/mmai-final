@@ -14,6 +14,9 @@ import base64
 from PIL import Image
 import io
 import os
+from music21 import stream, note, midi
+from midi2audio import FluidSynth
+
 
 app = Flask(__name__)
 
@@ -47,6 +50,8 @@ model.load_weights(weights_path)
 sequence = []
 mpHolistic = mp.solutions.holistic
 mpHands = mp.solutions.hands
+
+os.environ["MEDIAPIPE_USE_IMMEDIATE_INPUT_HANDLER"] = "1"
 
 holistic_model = mpHolistic.Holistic(
     min_detection_confidence=0.5,
@@ -108,10 +113,29 @@ def log_sign():
     else:
         return jsonify({'error': 'No sign provided'}), 400
 
-@app.route('/generate_music', methods=['GET'])
+@app.route('/generate-music', methods=['POST'])
 def generate_music():
-    # We just return the list of signs/letters
-    return jsonify({'notes': logged_signs})
+    #data = request.get_json()
+    #note_letters = data.get("notes", [])
+
+    # Create music21 stream
+    s = stream.Stream()
+    for letter in logged_signs:
+        n = note.Note(letter.upper())
+        n.quarterLength = 1
+        s.append(n)
+
+    # Save MIDI
+    midi_path = "static/temp.mid"
+    mf = midi.translate.streamToMidiFile(s)
+    mf.open(midi_path, 'wb')
+    mf.write()
+    mf.close()
+
+    fs = FluidSynth(sound_font="static/soundfonts/GeneralUser-GS.sf2")
+    fs.midi_to_audio(midi_path, 'static/output.wav')
+
+    return jsonify({"wav_url": "static/output.wav"})
 
 if __name__ == '__main__':
     app.run(debug=True)

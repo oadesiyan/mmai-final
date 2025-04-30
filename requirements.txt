@@ -8,3 +8,4 @@ Pillow==10.2.0
 SignLanguageRecognition
 music21==9.5.0
 vexflow==5.0.0
+midi2audio==0.1.1
