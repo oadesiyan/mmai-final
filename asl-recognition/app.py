@@ -14,7 +14,6 @@ import base64
 from PIL import Image
 import io
 import os
-from music21 import stream, note
 
 app = Flask(__name__)
 
@@ -31,22 +30,8 @@ And the PyPi link here: https://pypi.org/project/SignLanguageRecognition/
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 weights_path = os.path.join(BASE_DIR, 'action.h5')
 
-mp_hands = mp.solutions.hands
-
-
-actions = np.array(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'w', 'y', 'z'])
-
-signEquivs = { #ASL to musical note equivalencies (treble clef ver)
-    "a":"A",
-    "b":"B",
-    "c":"C",
-    "d":"D",
-    "e":"E",
-    "f":"F",
-    "g":"G"
-}
-
-logged_signs = []
+actions = np.array(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'w', 'y', 'z'])
+noteLetters = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
 
 model = Sequential([
     Input(shape=(30, 126)),
@@ -61,13 +46,14 @@ model.load_weights(weights_path)
 
 sequence = []
 mpHolistic = mp.solutions.holistic
+mpHands = mp.solutions.hands
 
 @app.route('/', methods=["GET", "POST"])
 def home():
     return render_template("index.html")
 
 # endpoint that uses Jan's methods to detect signs
-@app.route('/predict-sign', methods=["POST"])
+@app.route('/predict-sign', methods=['POST'])
 def predict_sign():
     data = request.get_json()
     image_data = data['image'].split(',')[1]
@@ -75,13 +61,8 @@ def predict_sign():
     image = Image.open(io.BytesIO(image_bytes))
     image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 
-    with mp_hands.Hands(static_image_mode=False,
-                        max_num_hands=1,
-                        min_detection_confidence=0.5,
-                        min_tracking_confidence=0.5) as hands:
-
-        image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        results = hands.process(image_rgb)
+    with mpHolistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
+        image, results = mediapipeDetection(image, holistic)
         keypoints = extractKeypoints(results)
 
         global sequence
@@ -90,71 +71,18 @@ def predict_sign():
 
         if len(sequence) == 30:
             res = model.predict(tf.expand_dims(sequence, axis=0))[0]
-            prediction = actions[np.argmax(res)]
+            
+            # Get full prediction
+            full_prediction = actions[np.argmax(res)]
             confidence = float(np.max(res))
-            return jsonify({ "prediction": prediction, "confidence": confidence })
+
+            # Only allow if it's in allowed_letters
+            if full_prediction in noteLetters:
+                return jsonify({ "prediction": full_prediction, "confidence": confidence })
+            else:
+                return jsonify({ "prediction": "", "confidence": 0.0 })
 
     return jsonify({ "prediction": "", "confidence": 0.0 })
-
-
-# method that generates the staff displayed on the webpage
-def generate_sheet_music(notes):
-    s = stream.Stream()
-    for letter in notes:
-        if letter in signEquivs:
-            n = note.Note(signEquivs[letter])
-            n.quarterLength = 1  # default duration
-            s.append(n)
-    s.write('musicxml.png', fp='static/sheet_music.png')  # output for display
-
-# method that creates a midi file that will be played
-def generate_midi(notes):
-    s = stream.Stream()
-    for letter in notes:
-        if letter in signEquivs:
-            n = note.Note(signEquivs[letter])
-            n.quarterLength = 1
-            s.append(n)
-    s.write('midi', fp='static/generated_song.mid')
-
-
-# end point that creates song using the detected notes
-@app.route('/generate-song', methods=['POST'])
-def generate_song():
-    data = request.get_json()
-    letters = data.get('prediction', '')
-    letters = letters.split()
-
-    generate_sheet_music(letters)
-    generate_midi(letters)
-    
-    return jsonify({
-        "midi_url": url_for('static', filename='generated_song.mid'),
-        "sheet_url": url_for('static', filename='sheet_music.png')
-    })
-
-@app.route('/start_logging', methods=['POST'])
-def start_logging():
-    global logged_signs
-    logged_signs = []  # Reset
-    return jsonify({'message': 'Logging started'})
-
-@app.route('/log_sign', methods=['POST'])
-def log_sign():
-    data = request.get_json()
-    sign = data.get('sign')
-
-    if sign:
-        logged_signs.append(sign)
-        return jsonify({'message': f'Sign {sign} logged successfully'})
-    else:
-        return jsonify({'error': 'No sign provided'}), 400
-
-@app.route('/generate_music', methods=['GET'])
-def generate_music():
-    #return the list of signs/letters
-    return jsonify({'notes': logged_signs})
-
 
 if __name__ == '__main__':
     app.run(debug=True)

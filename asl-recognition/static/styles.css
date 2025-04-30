@@ -27,8 +27,12 @@
 
 }
 
-#startStopGen {
+.signGuide {
     display: flex;
-    flex-direction: row;
-    align-items: center;
+    justify-content: center;
+}
+
+#aslGuide {
+    height: 50%;
+    width: 50%;
 }

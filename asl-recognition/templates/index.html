@@ -15,21 +15,16 @@
                     <button id="startBtn">Start Webcam</button>
                     <button id="stopBtn">Stop Webcam</button>
                 </div>
-
-                <div id="startStopGen">
-                    <button id="startGenBtn">Start Song Creation</button>
-                    <button id="endGenBtn" disabled>End Song Creation</button>
-                </div>
             </div>
 
             <div class="result">
                 <p>Prediction: <span id="result-box"></span></p>
-                <div class="staffContainer">
-                    <img src="" alt="Current music staff">
-                </div>
             </div>
         </div>
-        <script src="https://unpkg.com/vexflow/releases/vexflow-min.js"></script>
+
+        <div class="signGuide">
+            <img src="{{ url_for('static', filename='images/asl_a_g.png') }}" id="aslGuide"/>
+        </div>
         <script src="{{ url_for('static', filename='script.js') }}" defer></script>
     </body>
 </html>
