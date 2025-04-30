@@ -26,3 +26,13 @@
     display: flex;
 
 }
+
+.signGuide {
+    display: flex;
+    justify-content: center;
+}
+
+#aslGuide {
+    height: 50%;
+    width: 50%;
+}

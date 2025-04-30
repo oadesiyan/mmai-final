@@ -31,6 +31,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 weights_path = os.path.join(BASE_DIR, 'action.h5')
 
 actions = np.array(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'w', 'y', 'z'])
+noteLetters = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
 
 model = Sequential([
     Input(shape=(30, 126)),
@@ -45,6 +46,7 @@ model.load_weights(weights_path)
 
 sequence = []
 mpHolistic = mp.solutions.holistic
+mpHands = mp.solutions.hands
 
 @app.route('/', methods=["GET", "POST"])
 def home():
@@ -69,9 +71,16 @@ def predict_sign():
 
         if len(sequence) == 30:
             res = model.predict(tf.expand_dims(sequence, axis=0))[0]
-            prediction = actions[np.argmax(res)]
+            
+            # Get full prediction
+            full_prediction = actions[np.argmax(res)]
             confidence = float(np.max(res))
-            return jsonify({ "prediction": prediction, "confidence": confidence })
+
+            # Only allow if it's in allowed_letters
+            if full_prediction in noteLetters:
+                return jsonify({ "prediction": full_prediction, "confidence": confidence })
+            else:
+                return jsonify({ "prediction": "", "confidence": 0.0 })
 
     return jsonify({ "prediction": "", "confidence": 0.0 })
 
