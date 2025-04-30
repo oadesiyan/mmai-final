@@ -36,3 +36,13 @@
     height: 50%;
     width: 50%;
 }
+
+#staffCtrls {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.result {
+    background-color: blueviolet;
+}
