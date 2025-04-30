@@ -3,7 +3,7 @@ const startBtn = document.querySelector("#startBtn");
 const stopBtn = document.querySelector("#stopBtn");
 const container = document.querySelector(".home-container");
 const staffStart = document.querySelector("#staffStart");
-const stopStaff = document.querySelector("#staffStart");
+const stopStaff = document.querySelector("#staffEnd");
 
 const resultDisplay = document.querySelector("#result-box"); //ASL prediction is loaded here
 const box = document.querySelector(".result")
@@ -181,3 +181,5 @@ deleteNoteBtn.addEventListener('click', () => {
     loggedNotes.pop();
     drawStaff();
 });
+
+document.getElementById("staffCtrls").style.display = "none";
